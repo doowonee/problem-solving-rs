@@ -1,6 +1,20 @@
 /// Print reversed number removed zero if it starts with.
-pub fn reverse_number(_given_number :i32) -> i32 {
-    _given_number
+pub fn reverse_number(mut given_number :i32) -> i32 {
+    let mut currnet_digit;
+    let mut result = 0;
+
+    while given_number > 0 {
+        currnet_digit = given_number % 10;
+        if currnet_digit != 0 {
+            result = result * 10 + currnet_digit;
+        } else if currnet_digit == 0 && result != 0 {
+            // add zero if it's in middle of result.
+            result = result * 10 + currnet_digit;
+        }
+        given_number = given_number / 10;
+    }
+
+    result
 }
 
 #[cfg(test)]
