@@ -1,5 +1,5 @@
 /// Print reversed number removed zero if it starts with.
-pub fn solution(mut given_number :i32) -> i32 {
+fn solution(mut given_number :i32) -> i32 {
     let mut currnet_digit;
     let mut result = 0;
 
