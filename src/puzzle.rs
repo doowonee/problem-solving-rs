@@ -1,7 +1,15 @@
 //! Find the minimum count of blocks to fit in given shape.
 //! 
+//! Gien shape an blocks are represeted as coordiate point see https://www.mathworks.com/help/images/image-coordinate-systems.html
+//! 
 //! ```
-//! block sizes are 1*1, 1*2, 1*3, 1*4, 2*2.
+//! block types are .
+//! 
+//! 1x1 (0,0)
+//! 1x2 (0,0), (1,0)
+//! 1x3 (0,0), (1,0), (2,0)
+//! 1x4 (0,0), (1,0), (2,0) (3,0)
+//! 2x2 (0,0), (1,0), (1,1) (0,1)
 //! 
 //! If given problem is
 //! 
@@ -11,6 +19,8 @@
 //!     [0, 1, 1, 1],
 //!     [0, 1, 0, 0]
 //! ]
+//! 
+//! As corodinate system it's ((0,0), (1,0), (1.1), (1,2), (1,3), (2,2), (3,2))
 //! 
 //! then minumum is 3 like below
 //! 
@@ -90,13 +100,13 @@ mod tests {
     use super::*;
     
     #[test]
-    fn count_pixel_of_shape() {
+    fn first_shape() {
         let problem = vec![ 
-            Vertex(0,0), 
+            Vertex(0,0),
             Vertex(1,0), Vertex(1,1), Vertex(1,2), Vertex(1,3),
-            Vertex(2,2), 
+            Vertex(2,2),
             Vertex(3,2),
         ];
-        assert_eq!(solution(&problem), 7);
+        assert_eq!(solution(&problem), 3);
     }
 }
