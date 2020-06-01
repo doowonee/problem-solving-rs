@@ -8,6 +8,6 @@ Run `cargo test` in project directory. It will be run all of unit tests. If you 
 # Rule of prefix about commit message
 
 - problem: change tests, comment, docs about quiz.
-- answer: change solve function logic.
+- answer: change solution logic.
 - build: change cargo project structure
 - etc: change README.md

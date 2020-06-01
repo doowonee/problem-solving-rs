@@ -49,7 +49,10 @@
 //! ```
 //! 
 
+use std::collections::HashSet;
+
 /// vertex of block which is coordinated system.
+#[derive(PartialEq, Eq, Copy, Clone, Hash, Ord, PartialOrd)]
 struct Vertex(u32, u32);
 
 /// show only coordinate point without sturct name
@@ -80,20 +83,48 @@ impl std::fmt::Debug for Block {
 /// find the minimum count of blocks to fit in given shape.
 fn solution(problem: &Shape) -> usize {
     // Blocks which can fit in the given shape.
-    let block_pool: [Block; 5] = [
-        Block { vertices: vec![Vertex(0,0)] },
-        Block { vertices: vec![Vertex(0,0), Vertex(1,0)] },
-        Block { vertices: vec![Vertex(0,0), Vertex(1,0), Vertex(2,0)] },
-        Block { vertices: vec![Vertex(0,0), Vertex(1,0), Vertex(2,0), Vertex(3,0)] },
-        Block { vertices: vec![Vertex(0,0), Vertex(1,0), Vertex(1,1), Vertex(0,1)] },
-    ];
+    // let block_pool: [Block; 5] = [
+    //     Block { vertices: vec![Vertex(0,0)] },
+    //     Block { vertices: vec![Vertex(0,0), Vertex(1,0)] },
+    //     Block { vertices: vec![Vertex(0,0), Vertex(1,0), Vertex(2,0)] },
+    //     Block { vertices: vec![Vertex(0,0), Vertex(1,0), Vertex(2,0), Vertex(3,0)] },
+    //     Block { vertices: vec![Vertex(0,0), Vertex(1,0), Vertex(1,1), Vertex(0,1)] },
+    // ];
     
-    println!("given shape {:?}", problem);
-    for block in &block_pool {
-        println!("your have: {:?}", block);
+    println!("#@ given vector of points:  {:?}", problem);
+    
+    // given problem is vector but it is not guaranteed to be sorted.
+    // so problem could be possible to be [(0,0) (2,0) (1,0)].
+    let mut sorted_problem = problem.clone();
+    sorted_problem.sort();
+    println!("#@ sorted_problem: {:?}", sorted_problem);
+    
+    // hashsets are copied from vector so vector is still accessible.
+    let set_of_problem: HashSet<Vertex> = problem.iter().cloned().collect();
+    let mut caculated_points: HashSet<Vertex> = HashSet::new();
+    for point in &sorted_problem {
+        if !caculated_points.contains(point) {
+            // skip iterate to scan toward right
+            scan_right(point, &set_of_problem, &mut caculated_points);
+        }
     }
+
     // currently it returns wrong number
     0
+}
+
+fn scan_right(current_point: &Vertex, all_of_points: &HashSet<Vertex>, caculated_points: &mut HashSet<Vertex>) {
+    println!("#@ scan from {:?} to right", current_point);
+    // check to right from start point
+    let mut next_point = Vertex(current_point.0 + 1, current_point.1);
+    let mut max_size = 1;
+    while all_of_points.contains(&next_point) {
+        // if next point can be a part of block then record it.
+        caculated_points.insert(next_point);
+        max_size += 1;
+        next_point = Vertex(next_point.0 + 1, next_point.1);
+    }
+    println!("width is {:?}", max_size)
 }
 
 mod tests {
@@ -101,11 +132,12 @@ mod tests {
     
     #[test]
     fn first_shape() {
-        let problem = vec![ 
-            Vertex(0,0),
-            Vertex(1,0), Vertex(1,1), Vertex(1,2), Vertex(1,3),
-            Vertex(2,2),
+        // points are un sorted vector.
+        let problem = vec![
             Vertex(3,2),
+            Vertex(2,2),
+            Vertex(1,0), Vertex(1,1), Vertex(1,2), Vertex(1,3),
+            Vertex(0,0),
         ];
         assert_eq!(solution(&problem), 3);
     }
