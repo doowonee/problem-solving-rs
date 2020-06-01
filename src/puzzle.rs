@@ -3,13 +3,6 @@
 //! Gien shape an blocks are represeted as coordiate point see https://www.mathworks.com/help/images/image-coordinate-systems.html
 //! 
 //! ```
-//! block types are .
-//! 
-//! 1x1 (0,0)
-//! 1x2 (0,0), (1,0)
-//! 1x3 (0,0), (1,0), (2,0)
-//! 1x4 (0,0), (1,0), (2,0) (3,0)
-//! 2x2 (0,0), (1,0), (1,1) (0,1)
 //! 
 //! If given problem is
 //! 
@@ -81,17 +74,11 @@ impl std::fmt::Debug for Block {
 }
 
 /// find the minimum count of blocks to fit in given shape.
-fn solution(problem: &Shape) -> usize {
-    // Blocks which can fit in the given shape.
-    // let block_pool: [Block; 5] = [
-    //     Block { vertices: vec![Vertex(0,0)] },
-    //     Block { vertices: vec![Vertex(0,0), Vertex(1,0)] },
-    //     Block { vertices: vec![Vertex(0,0), Vertex(1,0), Vertex(2,0)] },
-    //     Block { vertices: vec![Vertex(0,0), Vertex(1,0), Vertex(2,0), Vertex(3,0)] },
-    //     Block { vertices: vec![Vertex(0,0), Vertex(1,0), Vertex(1,1), Vertex(0,1)] },
-    // ];
-    
+fn solution(problem: &Shape, blocks: &Vec<Block>) -> usize {
     println!("#@ given vector of points:  {:?}", problem);
+    for block in blocks {
+        println!("#@ type of blocks:  {:?}", block);
+    }
     
     // given problem is vector but it is not guaranteed to be sorted.
     // so problem could be possible to be [(0,0) (2,0) (1,0)].
@@ -102,29 +89,67 @@ fn solution(problem: &Shape) -> usize {
     // hashsets are copied from vector so vector is still accessible.
     let set_of_problem: HashSet<Vertex> = problem.iter().cloned().collect();
     let mut caculated_points: HashSet<Vertex> = HashSet::new();
+    let mut count_of_blocks = 0;
     for point in &sorted_problem {
         if !caculated_points.contains(point) {
             // skip iterate to scan toward right
-            scan_right(point, &set_of_problem, &mut caculated_points);
+            let horizontal_max_length = scan_right(point, &set_of_problem);
+            let vertical_max_length = scan_above(point, &set_of_problem);
+            if horizontal_max_length >= vertical_max_length {
+                let mut point_of_block: Vec<Vertex> = Vec::new();
+                // insert current point
+                point_of_block.push(*point);
+                for length in 1..horizontal_max_length {
+                    // shape has larger width to fit by given blocks
+                    // points fit by block and add to map for preventing iterate again
+                    let used_point = Vertex(point.0 + length, point.1);
+                    caculated_points.insert(used_point);
+                    // insert used point to represent block of shape
+                    point_of_block.push(used_point);
+                }
+                count_of_blocks +=1;
+                println!("{:?} block of points are {:?}", count_of_blocks, point_of_block)
+            } else {
+                let mut point_of_block: Vec<Vertex> = Vec::new();
+                // insert current point
+                point_of_block.push(*point);
+                for length in 1..vertical_max_length {
+                    // shape has larger height to fit by given blocks
+                    // points fit by block and add to map for preventing iterate again
+                    let used_point = Vertex(point.0, point.1 + length);
+                    caculated_points.insert(used_point);
+                    // insert used point to represent block of shape
+                    point_of_block.push(used_point);
+                }
+                count_of_blocks +=1;
+                println!("{:?} block of points are {:?}", count_of_blocks, point_of_block)
+            }
         }
     }
 
-    // currently it returns wrong number
-    0
+    count_of_blocks
 }
 
-fn scan_right(current_point: &Vertex, all_of_points: &HashSet<Vertex>, caculated_points: &mut HashSet<Vertex>) {
-    println!("#@ scan from {:?} to right", current_point);
+fn scan_above(current_point: &Vertex, all_of_points: &HashSet<Vertex>) -> u32 {
+    // check to above from start point
+    let mut next_point = Vertex(current_point.0, current_point.1 + 1);
+    let mut max_size = 1;
+    while all_of_points.contains(&next_point) {
+        max_size += 1;
+        next_point = Vertex(next_point.0, next_point.1 + 1);
+    }
+    max_size
+}
+
+fn scan_right(current_point: &Vertex, all_of_points: &HashSet<Vertex>) -> u32 {
     // check to right from start point
     let mut next_point = Vertex(current_point.0 + 1, current_point.1);
     let mut max_size = 1;
     while all_of_points.contains(&next_point) {
-        // if next point can be a part of block then record it.
-        caculated_points.insert(next_point);
         max_size += 1;
         next_point = Vertex(next_point.0 + 1, next_point.1);
     }
-    println!("width is {:?}", max_size)
+    max_size
 }
 
 mod tests {
@@ -132,13 +157,22 @@ mod tests {
     
     #[test]
     fn first_shape() {
-        // points are un sorted vector.
+        // not guaranteed to be sorted
         let problem = vec![
             Vertex(3,2),
             Vertex(2,2),
             Vertex(1,0), Vertex(1,1), Vertex(1,2), Vertex(1,3),
             Vertex(0,0),
         ];
-        assert_eq!(solution(&problem), 3);
+
+        // not guaranteed to be sorted
+        let blocks = vec![
+            Block { vertices: vec![Vertex(0,0)] },
+            Block { vertices: vec![Vertex(0,0), Vertex(1,0)] },
+            Block { vertices: vec![Vertex(0,0), Vertex(1,0), Vertex(2,0)] },
+            Block { vertices: vec![Vertex(0,0), Vertex(1,0), Vertex(2,0), Vertex(3,0)] },
+        ];
+
+        assert_eq!(solution(&problem, &blocks), 3);
     }
 }
