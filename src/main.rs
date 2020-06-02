@@ -6,7 +6,7 @@
 #[cfg(test)]
 mod reverse_number;
 #[cfg(test)]
-mod puzzle;
+mod fixed_puzzle_game;
 
 fn main() {
     println!("This is not a program. Please run cargo test to use this repo.");
