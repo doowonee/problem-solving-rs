@@ -44,7 +44,7 @@
 use std::collections::HashSet;
 
 /// maximum block size is 1x4
-const MAX_CAPACITY: u32 = 4;
+const MAX_CAPACITY: usize = 4;
 
 /// vertex of block which is coordinated system.
 #[derive(PartialEq, Eq, Copy, Clone, Hash, Ord, PartialOrd)]
@@ -94,38 +94,23 @@ fn solution(problem: &Shape) -> usize {
     // iterate sorted point due to check right and below not left or above.
     for point in &sorted_problem {
         if !caculated_points.contains(point) {
-            // skip iterate to scan toward right
-            let horizontal_max_length = scan_right(point, &set_of_problem, &caculated_points);
-            let vertical_max_length = scan_above(point, &set_of_problem, &caculated_points);
+            let (horizontal_block, vertical_block) = scan(point, &set_of_problem, &caculated_points);
 
-            if horizontal_max_length >= vertical_max_length {
-                let mut point_of_block: Vec<Vertex> = Vec::new();
-                // insert current point
-                point_of_block.push(*point);
-                for length in 1..horizontal_max_length {
-                    // shape has larger width to fit by given blocks
-                    // points fit by block and add to map for preventing iterate again
-                    let used_point = Vertex(point.0 + length, point.1);
-                    caculated_points.insert(used_point);
-                    // insert used point to represent block of shape
-                    point_of_block.push(used_point);
+            // if horizontal block can be fit larger than vertically. 
+            if horizontal_block.len() >= vertical_block.len() {
+                for point in &horizontal_block {
+                    // mark point as cacaulated so prevent to use dupilicated
+                    caculated_points.insert(*point);
                 }
                 count_of_blocks +=1;
-                println!("{:?}th block of points are {:?}", count_of_blocks, point_of_block)
+                println!("{:?}th block of points are {:?}", count_of_blocks, horizontal_block)
             } else {
-                let mut point_of_block: Vec<Vertex> = Vec::new();
-                // insert current point
-                point_of_block.push(*point);
-                for length in 1..vertical_max_length {
-                    // shape has larger height to fit by given blocks
-                    // points fit by block and add to map for preventing iterate again
-                    let used_point = Vertex(point.0, point.1 + length);
-                    caculated_points.insert(used_point);
-                    // insert used point to represent block of shape
-                    point_of_block.push(used_point);
+                for point in &vertical_block {
+                    // mark point as cacaulated so prevent to use dupilicated
+                    caculated_points.insert(*point);
                 }
                 count_of_blocks +=1;
-                println!("{:?}th block of points are {:?}", count_of_blocks, point_of_block)
+                println!("{:?}th block of points are {:?}", count_of_blocks, vertical_block)
             }
         }
     }
@@ -133,28 +118,27 @@ fn solution(problem: &Shape) -> usize {
     count_of_blocks
 }
 
-fn scan_above(current_point: &Vertex, all_of_points: &HashSet<Vertex>, caculated_points: &HashSet<Vertex>) -> u32 {
-    // check to above from start point
-    let mut next_point = Vertex(current_point.0, current_point.1 + 1);
-    let mut max_size = 1;
-    
-    // if next point is exisits and lower than max block size without already fit by another blocks.
-    while all_of_points.contains(&next_point) && max_size < MAX_CAPACITY && !caculated_points.contains(&next_point) {
-        max_size += 1;
-        next_point = Vertex(next_point.0, next_point.1 + 1);
-    }
-    max_size
-}
+/// scan both direction and returns list of points can be fitted.
+fn scan(current_point: &Vertex, all_of_points: &HashSet<Vertex>, caculated_points: &HashSet<Vertex>) -> (Vec<Vertex>, Vec<Vertex>) {
+    // scan horizontal direction first 
+    let mut next_point = Vertex(current_point.0  + 1, current_point.1);
+    let mut horizontal_possible_block: Vec<Vertex> = vec![*current_point];
+    let mut vertical_possible_block: Vec<Vertex> = vec![*current_point];
 
-fn scan_right(current_point: &Vertex, all_of_points: &HashSet<Vertex>, caculated_points: &HashSet<Vertex>) -> u32 {
-    // check to right from start point
-    let mut next_point = Vertex(current_point.0 + 1, current_point.1);
-    let mut max_size = 1;
-    while all_of_points.contains(&next_point) && max_size < MAX_CAPACITY && !caculated_points.contains(&next_point) {
-        max_size += 1;
+    // if next right point is exisits and lower than max block size without already fit by another blocks.
+    while all_of_points.contains(&next_point) && horizontal_possible_block.len() < MAX_CAPACITY && !caculated_points.contains(&next_point) {
+        horizontal_possible_block.push(next_point);
         next_point = Vertex(next_point.0 + 1, next_point.1);
     }
-    max_size
+
+    next_point = Vertex(current_point.0, current_point.1 + 1);
+    // if next bleow point is exisits and lower than max block size without already fit by another blocks.
+    while all_of_points.contains(&next_point) && vertical_possible_block.len() < MAX_CAPACITY && !caculated_points.contains(&next_point) {
+        vertical_possible_block.push(next_point);
+        next_point = Vertex(next_point.0, next_point.1 + 1);
+    }
+
+    (horizontal_possible_block, vertical_possible_block)
 }
 
 mod tests {
