@@ -150,6 +150,48 @@ fn scan(current_point: &Vertex, all_of_points: &HashSet<Vertex>, caculated_point
         next_point = Vertex(next_point.0, next_point.1 + 1);
     }
 
+    // check if it can use double size of block
+    // it is horizontally maximun so check if it can use duplicated below
+    let mut can_use_double = true;
+    let mut temp_list: Vec<Vertex> = Vec::new();
+
+    for block in &horizontal_possible_block {
+        let next_point = Vertex(block.0, block.1 + 1);
+        // if point was already used or doesn't exisit in the shape than can not use double.
+        if !all_of_points.contains(&next_point) || caculated_points.contains(&next_point) {
+            can_use_double = false;
+            break;
+        } else {
+            temp_list.push(next_point);
+        }
+    }
+    
+    // if we can use double than add points to list
+    if can_use_double {
+        horizontal_possible_block.append(&mut temp_list);
+    }
+    
+    // remove all of temp list
+    // use temp_list again for vertical way
+    temp_list.clear();
+    can_use_double = true;
+
+    for block in &vertical_possible_block {
+        let next_point = Vertex(block.0, block.1 + 1);
+        // if point was already used or doesn't exisit in the shape than can not use double.
+        if !all_of_points.contains(&next_point) || caculated_points.contains(&next_point) {
+            can_use_double = false;
+            break;
+        } else {
+            temp_list.push(next_point);
+        }
+    }
+    
+    // if we can use double than add points to list
+    if can_use_double {
+        vertical_possible_block.append(&mut temp_list);
+    }
+
     (horizontal_possible_block, vertical_possible_block)
 }
 
@@ -185,7 +227,7 @@ mod tests {
     /// ]
     /// ```
     #[test]
-    fn should_divide_size_5_but_not_6() {
+    fn should_use_thick_block2() {
         let problem = vec![
             Vertex(0,0), Vertex(1,0), Vertex(2,0), Vertex(3,0), Vertex(4,0), Vertex(5,0), Vertex(6,0),
             Vertex(0,1), Vertex(1,1), Vertex(2,1), Vertex(3,1), Vertex(4,1), Vertex(5,1), Vertex(6,1),
@@ -193,5 +235,24 @@ mod tests {
         ];
 
         assert_eq!(solution(&problem), 3);
+    }
+
+    /// ```
+    /// [
+    ///     [0, 1, 1, 1, 0],
+    ///     [1, 1, 1, 1, 1],
+    ///     [1, 1, 1, 0, 0],
+    ///     [1, 1, 1, 0, 0],
+    /// ]
+    /// ```
+    #[test]
+    fn should_use_thick_block3() {
+        let problem = vec![
+            Vertex(1,0), Vertex(2,0), Vertex(3,0), Vertex(0,1), Vertex(3,1), Vertex(4,1),
+            Vertex(0,2), Vertex(0,3), Vertex(1,1), Vertex(2,1),
+            Vertex(1,2), Vertex(1,3), Vertex(2,2), Vertex(2,3),
+        ];
+
+        assert_eq!(solution(&problem), 4);
     }
 }
