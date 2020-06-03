@@ -1,33 +1,45 @@
-//! You have 4 types of blocks such as 1x1, 1x2, 1x3 and 1x4.
+//! You have various types of blocks following below.
+//! 1x1, 1x2, 1x3, 1x4, 1x6, 1x10, 2x2, 2x3, 2x4, 2x6, 2x8 and 2x10
 //! Find the minimum amount of blocks to fit in the given shape which is a problem.
 //! 
 //! Given shape and blocks are represeted as coordiate point see https://www.mathworks.com/help/images/image-coordinate-systems.html
-
+//! 
 //! If given problem is like
 //! 
 //! [
-//!     [1, 1, 0, 0],
-//!     [0, 1, 0, 0],
 //!     [0, 1, 1, 1],
-//!     [0, 1, 0, 0]
+//!     [1, 1, 1, 0],
+//!     [1, 1, 1, 0],
+//!     [1, 1, 1, 0],
 //! ]
 //! 
-//! As corodinate system it's ((0,0), (1,0), (1.1), (1,2), (1,3), (2,2), (3,2))
+//! As corodinate system it's ((1,0), (2,0), (3,0), (0,1), (0,2), (0,3), (1,1), (2,1), (1,2), (1,3), (2,2), (2,3))
 //! 
-//! then minumum is 3 like below
+//! then answer is 3 like below
 //! 
 //! [
-//!     [1, 4, 0, 0],
-//!     [0, 4, 0, 0],
-//!     [0, 4, 2, 2],
-//!     [0, 4, 0, 0]
+//!     [0, 1, 1, 1],
+//!     [2, 2, 2, 0],
+//!     [3, 3, 3, 0],
+//!     [3, 3, 3, 0]
 //! ]
 //! 
+//! or 
+//! 
 //! [
-//!     [2, 2, 0, 0],
-//!     [0, 3, 0, 0],
-//!     [0, 3, 2, 2],
-//!     [0, 3, 0, 0]
+//!     [0, 2, 2, 3],
+//!     [1, 2, 2, 0],
+//!     [1, 2, 2, 0],
+//!     [1, 2, 2, 0]
+//! ]
+//! 
+//! or
+//! 
+//! [
+//!     [0, 1, 1, 1],
+//!     [2, 2, 3, 0],
+//!     [2, 2, 3, 0],
+//!     [2, 2, 3, 0]
 //! ]
 //! 
 //! this is 4 so it's not an answer.
@@ -146,86 +158,40 @@ mod tests {
     
     /// ```
     /// [
-    ///     [1, 1, 0, 0],
-    ///     [0, 1, 0, 0],
     ///     [0, 1, 1, 1],
-    ///     [0, 1, 0, 0]
-    /// ]
-    /// ```
-    #[test]
-    fn sorted_problem() {
-        let problem = vec![
-            Vertex(0,0),
-            Vertex(1,0), Vertex(1,1), Vertex(1,2), Vertex(1,3),
-            Vertex(2,2),
-            Vertex(3,2),
-        ];
-
-        assert_eq!(solution(&problem), 3);
-    }
-    
-    /// ```
-    /// [
-    ///     [1, 1, 0, 0],
-    ///     [0, 1, 0, 0],
-    ///     [0, 1, 1, 1],
-    ///     [0, 1, 0, 0]
-    /// ]
-    /// ```
-    #[test]
-    fn unsorted_problem() {
-        let problem = vec![
-            Vertex(2,2),
-            Vertex(0,0),
-            Vertex(3,2),
-            Vertex(1,0), Vertex(1,1), Vertex(1,2), Vertex(1,3),
-        ];
-
-        assert_eq!(solution(&problem), 3);
-    }
-
-    /// ```
-    /// [
-    ///     [1, 1, 0, 0],
     ///     [1, 1, 1, 0],
-    ///     [0, 1, 1, 1],
-    ///     [0, 1, 0, 0]
+    ///     [1, 1, 1, 0],
+    ///     [1, 1, 1, 0],
     /// ]
     /// ```
     #[test]
-    fn unsorted_problem_2() {
+    fn should_use_thick_block() {
         let problem = vec![
-            Vertex(2,2), Vertex(2,1),
-            Vertex(0,0), Vertex(0,1),
-            Vertex(3,2),
-            Vertex(1,0), Vertex(1,1), Vertex(1,2), Vertex(1,3),
+            Vertex(1,0), Vertex(2,0), Vertex(3,0), Vertex(0,1),
+            Vertex(0,2), Vertex(0,3), Vertex(1,1), Vertex(2,1),
+            Vertex(1,2), Vertex(1,3), Vertex(2,2), Vertex(2,3),
         ];
 
-        assert_eq!(solution(&problem), 4);
+        assert_eq!(solution(&problem), 3);
     }
 
     /// ```
     /// [
-    ///     [0, 0, 1, 1, 1, 1],
-    ///     [0, 1, 1, 0, 0, 1],
-    ///     [1, 1, 0, 0, 0, 1],
-    ///     [0, 1, 1, 0, 0, 1],
-    ///     [1, 1, 1, 1, 1, 1],
-    ///     [0, 1, 0, 1, 0, 0],
-    ///     [1, 1, 0, 0, 0, 0],
+    ///     [1, 1, 1, 1, 1, 1, 1],
+    ///     [1, 1, 1, 1, 1, 1, 1],
+    ///     [1, 0, 0, 0, 0, 0, 0],
+    ///     [1, 0, 0, 0, 0, 0, 0],
+    ///     [1, 0, 0, 0, 0, 0, 0],
     /// ]
     /// ```
     #[test]
-    fn unsorted_larger_than_4() {
+    fn should_divide_size_5_but_not_6() {
         let problem = vec![
-            Vertex(2,0), Vertex(2,1), Vertex(2,3), Vertex(2,4),
-            Vertex(0,2), Vertex(0,4), Vertex(0,6),
-            Vertex(3,0), Vertex(3,4), Vertex(3,5),
-            Vertex(4,0), Vertex(4,4),
-            Vertex(1,1), Vertex(1,2), Vertex(1,3), Vertex(1,4), Vertex(1,5), Vertex(1,6),
-            Vertex(5,0), Vertex(5,1), Vertex(5,2), Vertex(5,3), Vertex(5,4),
+            Vertex(0,0), Vertex(1,0), Vertex(2,0), Vertex(3,0), Vertex(4,0), Vertex(5,0), Vertex(6,0),
+            Vertex(0,1), Vertex(1,1), Vertex(2,1), Vertex(3,1), Vertex(4,1), Vertex(5,1), Vertex(6,1),
+            Vertex(0,2), Vertex(0,3), Vertex(0,4),
         ];
 
-        assert_eq!(solution(&problem), 10);
+        assert_eq!(solution(&problem), 3);
     }
 }
