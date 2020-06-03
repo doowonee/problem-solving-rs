@@ -87,9 +87,10 @@ impl std::fmt::Debug for Block {
     }
 }
 
-/// find the minimum count of blocks to fit in given shape.
-fn solution(problem: &Shape) -> usize {
-    
+/// find the minimum count of blocks to fit in given shape. It returns used blocks via points
+fn solution(problem: &Shape) -> Vec<Vec<Vertex>> {
+    let mut result: Vec<Vec<Vertex>> = Vec::new();
+
     // given problem is vector but it is not guaranteed to be sorted.
     // so problem could be possible to be [(0,0) (2,0) (1,0)].
     let mut sorted_problem = problem.clone();
@@ -101,7 +102,6 @@ fn solution(problem: &Shape) -> usize {
     // hashsets are copied from vector so vector is still accessible.
     let set_of_problem: HashSet<Vertex> = problem.iter().cloned().collect();
     let mut caculated_points: HashSet<Vertex> = HashSet::new();
-    let mut count_of_blocks = 0;
 
     // iterate sorted point due to check right and below not left or above.
     for point in &sorted_problem {
@@ -114,20 +114,20 @@ fn solution(problem: &Shape) -> usize {
                     // mark point as cacaulated so prevent to use dupilicated
                     caculated_points.insert(*point);
                 }
-                count_of_blocks +=1;
-                println!("{:?}th block of points are {:?}", count_of_blocks, horizontal_block)
+                result.push(horizontal_block);
+                println!("{:?}th block of points are {:?}", result.len(), result.last())
             } else {
                 for point in &vertical_block {
                     // mark point as cacaulated so prevent to use dupilicated
                     caculated_points.insert(*point);
                 }
-                count_of_blocks +=1;
-                println!("{:?}th block of points are {:?}", count_of_blocks, vertical_block)
+                result.push(vertical_block);
+                println!("{:?}th block of points are {:?}", result.len(), result.last())
             }
         }
     }
 
-    count_of_blocks
+    result
 }
 
 /// scan both direction and returns list of points can be fitted.
@@ -214,7 +214,7 @@ mod tests {
             Vertex(1,2), Vertex(1,3), Vertex(2,2), Vertex(2,3),
         ];
 
-        assert_eq!(solution(&problem), 3);
+        assert_eq!(solution(&problem).len(), 3);
     }
 
     /// ```
@@ -234,7 +234,7 @@ mod tests {
             Vertex(0,2), Vertex(0,3), Vertex(0,4),
         ];
 
-        assert_eq!(solution(&problem), 3);
+        assert_eq!(solution(&problem).len(), 3);
     }
 
     /// ```
@@ -253,6 +253,53 @@ mod tests {
             Vertex(1,2), Vertex(1,3), Vertex(2,2), Vertex(2,3),
         ];
 
-        assert_eq!(solution(&problem), 4);
+        assert_eq!(solution(&problem).len(), 4);
+    }
+
+    /// ```
+    /// [
+    ///     [1, 1, 1, 1, 1, 1, 1, 1],
+    /// ]
+    /// ```
+    #[test]
+    fn should_divided_6_and_2() {
+        let problem = vec![
+            Vertex(0,0), Vertex(1,0), Vertex(2,0), Vertex(3,0), Vertex(4,0), Vertex(5,0), Vertex(6,0), Vertex(7,0)
+        ];
+
+        let expected_result = vec![
+            vec![Vertex(0,0), Vertex(1,0), Vertex(2,0), Vertex(3,0), Vertex(4,0), Vertex(5,0),],
+            vec![Vertex(6,0), Vertex(7,0),],
+        ];
+
+        let result = solution(&problem);
+
+        assert_eq!(result, expected_result);
+    }
+
+    /// ```
+    /// [
+    ///     [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    ///     [1, 1, 1, 1, 1, 1, 1, 1, 0],
+    /// ]
+    /// ```
+    #[test]
+    fn should_use_2x8() {
+        let problem = vec![
+            Vertex(0,0), Vertex(1,0), Vertex(2,0), Vertex(3,0), Vertex(4,0), Vertex(5,0), Vertex(6,0), Vertex(7,0), Vertex(8,0),
+            Vertex(0,1), Vertex(1,1), Vertex(2,1), Vertex(3,1), Vertex(4,1), Vertex(5,1), Vertex(6,1), Vertex(7,1),
+        ];
+        
+        let expected_result = vec![
+            vec![
+                Vertex(0,0), Vertex(1,0), Vertex(2,0), Vertex(3,0), Vertex(4,0), Vertex(5,0), Vertex(6,0), Vertex(7,0),
+                Vertex(0,1), Vertex(1,1), Vertex(2,1), Vertex(3,1), Vertex(4,1), Vertex(5,1), Vertex(6,1), Vertex(7,1),
+            ],
+            vec![Vertex(8,0),],
+        ];
+
+        let result = solution(&problem);
+
+        assert_eq!(result, expected_result);
     }
 }
