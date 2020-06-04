@@ -55,10 +55,8 @@
 
 use std::collections::HashSet;
 
-/// 1x1, 1x2, 1x3, 1x4, 1x6, 1x10
-const SINGLE_BLOCKS: [usize; 6] = [1, 2, 3, 4, 6, 10];
-/// 2x2, 2x3, 2x4, 2x6, 2x8 and 2x10
-// const DOUBLE_BLOCKS: [usize; 6] = [2, 3, 4, 6, 8, 10];
+/// 1x1, 1x2, 1x3, 1x4, 1x6, 1x10, 2x2, 2x3, 2x4, 2x6, 2x8 and 2x10
+const BLOCK_SIZE_POOL: [usize; 7] = [1, 2, 3, 4, 6, 8, 10];
 
 /// vertex of block which is coordinated system.
 #[derive(PartialEq, Eq, Copy, Clone, Hash, Ord, PartialOrd)]
@@ -146,7 +144,7 @@ fn scan(current_point: &Vertex, all_of_points: &HashSet<Vertex>, caculated_point
     }
 
     // check horizontal_possible_block is given block size
-    for (i, size) in SINGLE_BLOCKS.iter().enumerate() {
+    for (i, size) in BLOCK_SIZE_POOL.iter().enumerate() {
         // if horizontal_possible_block exisists then use it. 
         if *size == horizontal_possible_block.len() {
             break;
@@ -154,7 +152,7 @@ fn scan(current_point: &Vertex, all_of_points: &HashSet<Vertex>, caculated_point
         // if there is no size to current horizontal_possible_block
         // then use closest smaller size to horizontal_possible_block
         if *size > horizontal_possible_block.len() {
-            horizontal_possible_block.truncate(SINGLE_BLOCKS[i-1]);
+            horizontal_possible_block.truncate(BLOCK_SIZE_POOL[i-1]);
             break;
         }
     }
@@ -168,7 +166,7 @@ fn scan(current_point: &Vertex, all_of_points: &HashSet<Vertex>, caculated_point
     }
 
     // check vertical_possible_block is given block size
-    for (i, size) in SINGLE_BLOCKS.iter().enumerate() {
+    for (i, size) in BLOCK_SIZE_POOL.iter().enumerate() {
         // if vertical_possible_block exisists then use it. 
         if *size == vertical_possible_block.len() {
             break;
@@ -176,7 +174,7 @@ fn scan(current_point: &Vertex, all_of_points: &HashSet<Vertex>, caculated_point
         // if there is no size to current vertical_possible_block
         // then use closest smaller size to vertical_possible_block
         if *size > vertical_possible_block.len() {
-            vertical_possible_block.truncate(SINGLE_BLOCKS[i-1]);
+            vertical_possible_block.truncate(BLOCK_SIZE_POOL[i-1]);
             break;
         }
     }
@@ -201,6 +199,12 @@ fn scan(current_point: &Vertex, all_of_points: &HashSet<Vertex>, caculated_point
     if can_use_double {
         horizontal_possible_block.append(&mut temp_list);
     }
+
+    // if 2x8 is impossible then change single block to 6
+    // @TODO currently it's hardcoding so It would be better
+    if !can_use_double && horizontal_possible_block.len() == 8 {
+        horizontal_possible_block.truncate(6);
+    }
     
     // remove all of temp list
     // use temp_list again for vertical way
@@ -221,6 +225,12 @@ fn scan(current_point: &Vertex, all_of_points: &HashSet<Vertex>, caculated_point
     // if we can use double than add points to list
     if can_use_double {
         vertical_possible_block.append(&mut temp_list);
+    }
+
+    // if 2x8 is impossible then change single block to 6
+    // @TODO currently it's hardcoding so It would be better
+    if !can_use_double && vertical_possible_block.len() == 8 {
+        vertical_possible_block.truncate(6);
     }
 
     (horizontal_possible_block, vertical_possible_block)
