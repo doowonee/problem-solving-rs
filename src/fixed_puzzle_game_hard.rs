@@ -55,8 +55,10 @@
 
 use std::collections::HashSet;
 
-/// maximum block size is 1x4
-const MAX_CAPACITY: usize = 4;
+/// 1x1, 1x2, 1x3, 1x4, 1x6, 1x10
+const SINGLE_BLOCKS: [usize; 6] = [1, 2, 3, 4, 6, 10];
+/// 2x2, 2x3, 2x4, 2x6, 2x8 and 2x10
+// const DOUBLE_BLOCKS: [usize; 6] = [2, 3, 4, 6, 8, 10];
 
 /// vertex of block which is coordinated system.
 #[derive(PartialEq, Eq, Copy, Clone, Hash, Ord, PartialOrd)]
@@ -115,14 +117,14 @@ fn solution(problem: &Shape) -> Vec<Vec<Vertex>> {
                     caculated_points.insert(*point);
                 }
                 result.push(horizontal_block);
-                println!("{:?}th block of points are {:?}", result.len(), result.last())
+                println!("{:?}th block is horizontal and points are {:?}", result.len(), result.last())
             } else {
                 for point in &vertical_block {
                     // mark point as cacaulated so prevent to use dupilicated
                     caculated_points.insert(*point);
                 }
                 result.push(vertical_block);
-                println!("{:?}th block of points are {:?}", result.len(), result.last())
+                println!("{:?}th block is vertical and points are {:?}", result.len(), result.last())
             }
         }
     }
@@ -133,23 +135,52 @@ fn solution(problem: &Shape) -> Vec<Vec<Vertex>> {
 /// scan both direction and returns list of points can be fitted.
 fn scan(current_point: &Vertex, all_of_points: &HashSet<Vertex>, caculated_points: &HashSet<Vertex>) -> (Vec<Vertex>, Vec<Vertex>) {
     // scan horizontal direction first 
-    let mut next_point = Vertex(current_point.0  + 1, current_point.1);
+    let mut next_point = Vertex(current_point.0 + 1, current_point.1);
     let mut horizontal_possible_block: Vec<Vertex> = vec![*current_point];
     let mut vertical_possible_block: Vec<Vertex> = vec![*current_point];
 
-    // if next right point is exisits and lower than max block size without already fit by another blocks.
-    while all_of_points.contains(&next_point) && horizontal_possible_block.len() < MAX_CAPACITY && !caculated_points.contains(&next_point) {
+    // if next right point is exisits without already used by another blocks.
+    while all_of_points.contains(&next_point) && !caculated_points.contains(&next_point) {
         horizontal_possible_block.push(next_point);
         next_point = Vertex(next_point.0 + 1, next_point.1);
     }
 
+    // check horizontal_possible_block is given block size
+    for (i, size) in SINGLE_BLOCKS.iter().enumerate() {
+        // if horizontal_possible_block exisists then use it. 
+        if *size == horizontal_possible_block.len() {
+            break;
+        }
+        // if there is no size to current horizontal_possible_block
+        // then use closest smaller size to horizontal_possible_block
+        if *size > horizontal_possible_block.len() {
+            horizontal_possible_block.truncate(SINGLE_BLOCKS[i-1]);
+            break;
+        }
+    }
+    
+    // scan vertically
     next_point = Vertex(current_point.0, current_point.1 + 1);
-    // if next bleow point is exisits and lower than max block size without already fit by another blocks.
-    while all_of_points.contains(&next_point) && vertical_possible_block.len() < MAX_CAPACITY && !caculated_points.contains(&next_point) {
+    // if next below point is exisits without already used by another blocks.
+    while all_of_points.contains(&next_point) && !caculated_points.contains(&next_point) {
         vertical_possible_block.push(next_point);
         next_point = Vertex(next_point.0, next_point.1 + 1);
     }
 
+    // check vertical_possible_block is given block size
+    for (i, size) in SINGLE_BLOCKS.iter().enumerate() {
+        // if vertical_possible_block exisists then use it. 
+        if *size == vertical_possible_block.len() {
+            break;
+        }
+        // if there is no size to current vertical_possible_block
+        // then use closest smaller size to vertical_possible_block
+        if *size > vertical_possible_block.len() {
+            vertical_possible_block.truncate(SINGLE_BLOCKS[i-1]);
+            break;
+        }
+    }
+    
     // check if it can use double size of block
     // it is horizontally maximun so check if it can use duplicated below
     let mut can_use_double = true;
@@ -177,7 +208,7 @@ fn scan(current_point: &Vertex, all_of_points: &HashSet<Vertex>, caculated_point
     can_use_double = true;
 
     for block in &vertical_possible_block {
-        let next_point = Vertex(block.0, block.1 + 1);
+        let next_point = Vertex(block.0 + 1, block.1);
         // if point was already used or doesn't exisit in the shape than can not use double.
         if !all_of_points.contains(&next_point) || caculated_points.contains(&next_point) {
             can_use_double = false;
@@ -270,6 +301,34 @@ mod tests {
         let expected_result = vec![
             vec![Vertex(0,0), Vertex(1,0), Vertex(2,0), Vertex(3,0), Vertex(4,0), Vertex(5,0),],
             vec![Vertex(6,0), Vertex(7,0),],
+        ];
+
+        let result = solution(&problem);
+
+        assert_eq!(result, expected_result);
+    }
+
+    /// ```
+    /// [
+    ///     [1],
+    ///     [1],
+    ///     [1],
+    ///     [1],
+    ///     [1],
+    ///     [1],
+    ///     [1],
+    ///     [1],
+    /// ]
+    /// ```
+    #[test]
+    fn should_divided_6_and_2_vertically() {
+        let problem = vec![
+            Vertex(0,0), Vertex(0,1), Vertex(0,2), Vertex(0,3), Vertex(0,4), Vertex(0,5), Vertex(0,6), Vertex(0,7),
+        ];
+
+        let expected_result = vec![
+            vec![Vertex(0,0), Vertex(0,1), Vertex(0,2), Vertex(0,3), Vertex(0,4), Vertex(0,5),],
+            vec![Vertex(0,6), Vertex(0,7),],
         ];
 
         let result = solution(&problem);
